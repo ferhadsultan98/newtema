@@ -9,7 +9,7 @@ let appState = {
     itemsPerPage: 6
 };
 
-// --- ROUTER & NAVİQASİYA SİSTEMİ (YENİLƏNMİŞ) ---
+// --- ROUTER & NAVİQASİYA SİSTEMİ (TAM DÜZƏLİŞ) ---
 
 // 1. URL dəyişmək və Router-i çağırmaq üçün əsas funksiya
 window.navigateTo = (url, param = null) => {
@@ -21,25 +21,35 @@ window.navigateTo = (url, param = null) => {
         }
     }
 
-    // Əgər URL tamdırsa (məsələn: /projects), onu olduğu kimi saxla
-    // Əgər sadə ID gəlirsə (məsələn: 'projects'), onu '/projects' formasına sal
+    // URL-i hazırlayırıq
     let path = url.startsWith('/') ? url : `/${url}`;
     
-    // Parametr varsa URL-ə əlavə et (məsələn: /projects/123)
+    // Parametr varsa URL-ə əlavə et
     if (param) {
-        path = `${path}/${param}`;
+        // Layihə detalları üçün
+        if (url === 'project-details') {
+            path = `/projects/${param}`;
+        } 
+        // Bloq detalları üçün
+        else if (url === 'blog-details') {
+            path = `/blog/${param}`;
+        } 
+        // Digər hallar üçün (məsələn /tools/api-tester)
+        else {
+            path = `${path}/${param}`;
+        }
     }
 
     // URL-i dəyiş (Səhifə yenilənmədən)
     history.pushState(null, null, path);
     
-    // Router-i işlət ki, məzmunu dəyişsin
+    // Router-i işlət
     router();
 };
 
 // 2. URL-ə əsasən düzgün səhifəni tapan funksiya
 const router = async () => {
-    const path = window.location.pathname; // Hazırkı URL (məs: /projects və ya /blog/5)
+    const path = window.location.pathname; // Hazırkı URL
     
     // Scrollu yuxarı qaldır
     if(container) container.scrollTo(0, 0);
@@ -50,8 +60,12 @@ const router = async () => {
     const projectMatch = path.match(/^\/projects\/([\w-]+)$/);
     if (projectMatch) {
         const projectId = projectMatch[1];
+        // projects.js faylının yükləndiyinə əmin oluruq
         if (typeof window.renderProjectDetailsPage === 'function') {
             container.innerHTML = window.renderProjectDetailsPage(projectId);
+        } else {
+            // Əgər JS hələ yüklənməyibsə, bir az gözləyib təkrar yoxlayırıq
+            setTimeout(() => router(), 100);
         }
         return;
     }
@@ -60,8 +74,11 @@ const router = async () => {
     const blogMatch = path.match(/^\/blog\/([\w-]+)$/);
     if (blogMatch) {
         const blogId = blogMatch[1];
+        // blog-details.js faylının yükləndiyinə əmin oluruq
         if (typeof window.renderBlogDetailsPage === 'function') {
             container.innerHTML = window.renderBlogDetailsPage(blogId);
+        } else {
+            setTimeout(() => router(), 100);
         }
         return;
     }
@@ -80,27 +97,16 @@ const router = async () => {
             
         case '/about':
             container.innerHTML = '<div class="text-center py-20 opacity-50">Yüklənir...</div>';
-            // About səhifəsi async ola bilər
             if(window.renderAboutPage) container.innerHTML = await window.renderAboutPage();
             break;
 
         case '/projects':
-             // Projects səhifəsi
             if(window.PAGES['projects']) container.innerHTML = window.PAGES['projects'];
-            // Əgər layihələri API-dən çəkən funksiya varsa onu çağır
-            if(window.PageProjects && window.PageProjects.render) {
-                 // PageProjects.render() birbaşa HTML qaytarırsa:
-                 // container.innerHTML = await window.PageProjects.render();
-                 // Və ya init funksiyası varsa:
-                 // window.PageProjects.init();
-            }
+            // API-dən gəlirsə burada init funksiyasını çağıra bilərsən
             break;
 
         case '/blog':
              if(window.PAGES['blog']) container.innerHTML = window.PAGES['blog'];
-             if(window.PageBlog && window.PageBlog.render) {
-                 // container.innerHTML = await window.PageBlog.render();
-             }
              break;
 
         case '/experience':
@@ -115,16 +121,14 @@ const router = async () => {
              break;
 
         default:
-             // Heç biri tapılmadısa 404 və ya Ana Səhifə
-             // Əgər path sadəcə '/' deyilsə və tanınmırsa
-             if(path !== '/') container.innerHTML = '<h2 class="text-2xl font-bold text-center mt-10">404 - Səhifə tapılmadı</h2>';
-             else renderHomePage(); 
+             // Heç biri tapılmadısa Ana Səhifəyə at
+             if(path !== '/') renderHomePage(); 
     }
 };
 
 // --- ANA SƏHİFƏ (HOME) ---
 function renderHomePage() {
-    const recentTools = window.TOOLS_DATA.slice(0, 3);
+    const recentTools = window.TOOLS_DATA ? window.TOOLS_DATA.slice(0, 3) : [];
     
     container.innerHTML = `
         <div class="space-y-8 animate-fade-in">
@@ -169,7 +173,7 @@ function renderAllToolsPage() {
 // --- KATEQORIYALAR ---
 function renderCategories() {
     const tabsContainer = document.getElementById('categoryTabs');
-    if (!tabsContainer) return;
+    if (!tabsContainer || !window.TOOLS_DATA) return;
 
     const categories = ['All', ...new Set(window.TOOLS_DATA.map(t => t.category || 'Other'))];
 
@@ -189,14 +193,14 @@ function renderCategories() {
 function updateToolsGrid() {
     const grid = document.getElementById('allToolsGrid');
     const pagContainer = document.getElementById('paginationControls');
-    if (!grid) return;
+    if (!grid || !window.TOOLS_DATA) return;
 
     let filtered = window.TOOLS_DATA;
     if (appState.currentCategory !== 'All') {
         filtered = filtered.filter(t => t.category === appState.currentCategory);
     }
 
-    const searchTerm = searchInput.value.toLowerCase();
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     if (searchTerm) {
         filtered = filtered.filter(t => 
             t.title.toLowerCase().includes(searchTerm) || 
@@ -237,7 +241,7 @@ function updateToolsGrid() {
 
 // --- KARTLARIN ÇƏKİLMƏSİ ---
 function renderSimpleGrid(element, data) {
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         element.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-10 text-slate-400">
                 <i class="ri-search-2-line text-4xl mb-2"></i>
@@ -281,8 +285,6 @@ window.changePage = (newPage) => {
 };
 
 window.openToolById = (id) => {
-    // URL-i dəyişirik ki, linki paylaşmaq olsun (məs: /tools/api-tester)
-    // Amma hələlik sadə saxlayırıq
     const tool = window.TOOLS_DATA.find(t => t.id === id);
     if (tool) openTool(tool);
 };
@@ -315,19 +317,20 @@ function openTool(tool) {
 // --- INIT & EVENT LISTENERS ---
 
 // Axtarış
-searchInput.addEventListener('input', () => {
-    if (window.location.pathname !== '/all-tools') {
-        window.navigateTo('all-tools');
-    }
-    appState.currentPage = 1;
-    updateToolsGrid();
-});
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        if (window.location.pathname !== '/all-tools') {
+            window.navigateTo('all-tools');
+        }
+        appState.currentPage = 1;
+        updateToolsGrid();
+    });
+}
 
-// Səhifə yüklənəndə (İlk dəfə və ya Refresh olanda)
+// Səhifə yüklənəndə
 document.addEventListener('DOMContentLoaded', () => {
-    // Mövcud URL-i router-ə göndər
     router();
 });
 
-// Back/Forward düymələrinə reaksiya
+// Back/Forward düymələri
 window.addEventListener("popstate", router);
