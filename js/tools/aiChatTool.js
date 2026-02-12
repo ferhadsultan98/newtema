@@ -1,39 +1,54 @@
 const aiChatTool = {
-    id: "ai-assistant-fs",
-    title: "AI Chat (FS Edition)",
-    description: "Süni intellekt ilə real vaxtda, sürətli və minimalist söhbət.",
+    id: "ai-assistant-ultimate",
+    title: "AI Chat (Multi-Model)",
+    description: "DeepSeek və Llama modelləri ilə işləyən, tam ekran dəstəkli peşəkar çat.",
     icon: "ri-whatsapp-line", 
     category: "AI & Communication",
-    keywords: ["chat", "ai", "fs tools", "bot", "sual-cavab"],
+    keywords: ["chat", "ai", "deepseek", "groq", "llama", "fs tools"],
 
     render: () => {
         return `
-            <div class="flex flex-col h-[600px] max-h-[85vh] bg-gray-100 dark:bg-dark-900 border border-gray-200 dark:border-dark-700 rounded-2xl overflow-hidden shadow-2xl relative animate-fade-in group">
+            <div id="chatMainContainer" class="flex flex-col h-[600px] max-h-[85vh] bg-gray-100 dark:bg-dark-900 border border-gray-200 dark:border-dark-700 rounded-2xl overflow-hidden shadow-2xl relative animate-fade-in group transition-all duration-300">
                 
-                <div class="bg-white dark:bg-dark-800 p-3 flex items-center justify-between border-b border-gray-200 dark:border-dark-700 z-20 relative shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
+                <div class="bg-white dark:bg-dark-800 p-3 flex items-center justify-between border-b border-gray-200 dark:border-dark-700 z-50 relative shadow-sm">
+                    
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="relative flex-shrink-0">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-md">
                                 <i class="ri-robot-2-line text-xl"></i>
                             </div>
                             <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-dark-800 rounded-full"></span>
                         </div>
                         
-                        <div class="flex flex-col">
-                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-none mb-1">AI Köməkçi</h3>
-                            <span id="aiStatus" class="text-xs text-slate-500 dark:text-slate-400 font-medium">Onlayn</span>
+                        <div class="flex flex-col min-w-0">
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-none mb-1 truncate">AI Köməkçi</h3>
+                            
+                            <div class="relative flex items-center">
+                                <select id="modelSelector" class="appearance-none bg-transparent text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer focus:outline-none pr-3 hover:text-blue-600 transition">
+                                    <option value="groq">Llama 3 (Groq)</option>
+                                    <option value="deepseek">DeepSeek V3</option>
+                                </select>
+                                <i class="ri-arrow-down-s-fill absolute right-0 text-xs text-slate-400 pointer-events-none"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="relative">
-                        <button id="chatMenuBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 text-slate-500 dark:text-slate-400 transition">
-                            <i class="ri-more-2-fill text-xl"></i>
-                        </button>
+                    <div class="flex items-center gap-1">
                         
-                        <div id="chatMenuDropdown" class="hidden absolute right-0 top-12 w-48 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-gray-200 dark:border-dark-700 overflow-hidden z-50 transform origin-top-right transition-all duration-200">
-                            <button id="clearChatBtn" class="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition">
-                                <i class="ri-delete-bin-line"></i> Söhbəti təmizlə
+                        <button id="fullScreenBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 text-slate-500 dark:text-slate-400 transition" title="Tam Ekran">
+                            <i id="fullScreenIcon" class="ri-fullscreen-line text-xl"></i>
+                        </button>
+
+                        <div class="relative">
+                            <button id="chatMenuBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 text-slate-500 dark:text-slate-400 transition">
+                                <i class="ri-more-2-fill text-xl"></i>
                             </button>
+                            
+                            <div id="chatMenuDropdown" class="hidden absolute right-0 top-12 w-48 bg-white dark:bg-dark-800 rounded-xl shadow-xl border border-gray-200 dark:border-dark-700 overflow-hidden z-50 transform origin-top-right transition-all duration-200">
+                                <button id="clearChatBtn" class="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition">
+                                    <i class="ri-delete-bin-line"></i> Söhbəti təmizlə
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -54,7 +69,8 @@ const aiChatTool = {
                     <div id="welcomeMsg" class="flex justify-start w-full animate-fade-in-up relative z-10">
                         <div class="bg-white dark:bg-dark-800 text-slate-700 dark:text-slate-200 rounded-2xl rounded-tl-none py-2 px-3 max-w-[85%] md:max-w-[70%] shadow-sm relative">
                             <p class="text-sm leading-relaxed mb-1">
-                                Salam! 👋 Mən Fərhad Sultanov tərəfindən hazırlanmış süni intellektəm. Sizə necə kömək edə bilərəm?
+                                Salam! 👋 Mən Fərhad Sultanov tərəfindən hazırlanmış süni intellektəm. 
+                                <br><span class="text-xs opacity-70 italic mt-1 block">Modeli yuxarıdan dəyişə bilərsiniz.</span>
                             </p>
                             <div class="flex justify-end items-center gap-1 mt-1">
                                 <span class="text-[10px] text-slate-400 dark:text-slate-500 select-none timestamp-now"></span>
@@ -66,7 +82,7 @@ const aiChatTool = {
 
                 </div>
 
-                <div class="bg-white dark:bg-dark-800 p-2 md:p-3 flex items-end gap-2 border-t border-gray-200 dark:border-dark-700 z-20">
+                <div class="bg-white dark:bg-dark-800 p-2 md:p-3 flex items-end gap-2 border-t border-gray-200 dark:border-dark-700 z-50">
                     
                     <div class="flex-1 bg-gray-100 dark:bg-dark-900 rounded-3xl flex items-center px-4 py-2 border border-transparent focus-within:border-blue-500/30 transition-all">
                         <textarea id="chatInput" rows="1" class="w-full bg-transparent border-none outline-none text-slate-700 dark:text-slate-200 text-sm resize-none max-h-32 custom-scroll placeholder:text-slate-400" placeholder="Bir mesaj yazın..."></textarea>
@@ -81,30 +97,61 @@ const aiChatTool = {
     },
 
     init: () => {
+        // --- SELECTIONS ---
+        const mainContainer = document.getElementById('chatMainContainer');
         const chatBody = document.getElementById('chatBody');
         const messagesContainer = document.getElementById('messagesContainer');
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
-        const statusLabel = document.getElementById('aiStatus');
+        const modelSelector = document.getElementById('modelSelector');
         
-        // Menu Elements
+        // Buttons
+        const fullScreenBtn = document.getElementById('fullScreenBtn');
+        const fullScreenIcon = document.getElementById('fullScreenIcon');
         const menuBtn = document.getElementById('chatMenuBtn');
         const menuDropdown = document.getElementById('chatMenuDropdown');
         const clearChatBtn = document.getElementById('clearChatBtn');
 
-        // Initial Timestamp
+        // Initial Time
         document.querySelectorAll('.timestamp-now').forEach(el => el.innerText = getCurrentTime());
 
-        // !!! API KEY (Bunu gizlətməyi unutma) !!!
-        const API_KEY = "BURA_ÖZ_GROQ_API_AÇARINI_YAZ"; 
 
-        // Sistem təlimatı
+        // ==========================================
+        //  !!! API KEYS (BURANI DOLDUR) !!!
+        // ==========================================
+        const KEYS = {
+            groq: "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",      // gsk_...
+            deepseek: "sk-43634066da7245a98c7d7359453a8988" // sk-43634...
+        };
+
+        // ==========================================
+        //  SİSTEM TƏLİMATI (PERSONA)
+        // ==========================================
         const systemPrompt = {
             role: "system",
-            content: "Sən faydalı, səmimi və savadlı bir süni intellekt köməkçisisən. Əsas təlimatların: 1) Səni kimin yaratdığını soruşsalar, mütləq 'Fərhad Sultanov' adını çək. De ki, 'Mən Fərhad Sultanov tərəfindən yetişdirilmişəm və inkişaf etdirilirəm'. 2) Yalnız Azərbaycan dilində cavab ver. 3) Cavabların konkret olsun."
+            content: "Sən faydalı və savadlı bir süni intellekt köməkçisisən. TƏLİMATLARIN: 1) Əgər səni kimin yaratdığını soruşsalar, mütləq 'Fərhad Sultanov' adını çək. Cavab ver: 'Mən Fərhad Sultanov tərəfindən yetişdirilmişəm və inkişaf etdirilirəm'. 2) Yalnız Azərbaycan dilində cavab ver. 3) Cavabların konkret və aydın olsun."
         };
 
         let conversationHistory = [systemPrompt];
+
+        // --- FULL SCREEN LOGIC ---
+        let isFullScreen = false;
+
+        fullScreenBtn.addEventListener('click', () => {
+            isFullScreen = !isFullScreen;
+            
+            if (isFullScreen) {
+                // Tam ekran rejimi
+                mainContainer.classList.add('fixed', 'inset-0', 'z-[9999]', 'h-full', 'max-h-full', 'rounded-none');
+                mainContainer.classList.remove('h-[600px]', 'max-h-[85vh]', 'rounded-2xl');
+                fullScreenIcon.className = "ri-fullscreen-exit-line text-xl";
+            } else {
+                // Normal rejim
+                mainContainer.classList.remove('fixed', 'inset-0', 'z-[9999]', 'h-full', 'max-h-full', 'rounded-none');
+                mainContainer.classList.add('h-[600px]', 'max-h-[85vh]', 'rounded-2xl');
+                fullScreenIcon.className = "ri-fullscreen-line text-xl";
+            }
+        });
 
         // --- MENU LOGIC ---
         menuBtn.addEventListener('click', (e) => {
@@ -112,54 +159,63 @@ const aiChatTool = {
             menuDropdown.classList.toggle('hidden');
         });
 
-        // Ekranda başqa yerə klikləyəndə menyunu bağla
         document.addEventListener('click', (e) => {
             if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
                 menuDropdown.classList.add('hidden');
             }
         });
 
-        // Söhbəti təmizlə
         clearChatBtn.addEventListener('click', () => {
-            messagesContainer.innerHTML = ''; // Ekranı təmizlə
-            conversationHistory = [systemPrompt]; // Yaddaşı təmizlə
-            menuDropdown.classList.add('hidden'); // Menyunu bağla
-            
-            // Xəbərdarlıq mesajı (Opsional)
-            // addMessageToUI('error', 'Söhbət təmizləndi.');
+            messagesContainer.innerHTML = '';
+            conversationHistory = [systemPrompt];
+            menuDropdown.classList.add('hidden');
         });
 
-        // --- CORE FUNCTIONS ---
-
+        // --- SEND MESSAGE LOGIC ---
         async function sendMessage() {
             const text = chatInput.value.trim();
             if (!text) return;
 
-            // 1. User mesajını əlavə et
+            // 1. UI Update
             addMessageToUI('user', text);
-            
-            // 2. Inputu dərhal təmizlə və hündürlüyü sıfırla (BUG FIX)
             chatInput.value = '';
             chatInput.style.height = 'auto'; 
-            chatInput.focus(); // Fokusu qaytar
-            
-            // 3. Statusu dəyiş
-            statusLabel.innerText = "yazır...";
-            statusLabel.className = "text-xs text-blue-500 font-bold animate-pulse";
+            chatInput.focus();
             
             setLoading(true);
 
             conversationHistory.push({ role: "user", content: text });
 
+            // Seçilmiş modeli götür
+            const selectedProvider = modelSelector.value; // 'groq' or 'deepseek'
+            const apiKey = KEYS[selectedProvider];
+
+            // Konfiqurasiya (Modelə görə dəyişir)
+            let apiUrl = "";
+            let apiModel = "";
+
+            if (selectedProvider === 'groq') {
+                apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+                apiModel = "llama-3.3-70b-versatile";
+            } else {
+                // DeepSeek
+                apiUrl = "https://api.deepseek.com/chat/completions";
+                apiModel = "deepseek-chat"; 
+            }
+
             try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                if (!apiKey || apiKey.includes("BURA_")) {
+                    throw new Error("API Açarı daxil edilməyib!");
+                }
+
+                const response = await fetch(apiUrl, {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer ${API_KEY}`,
+                        "Authorization": `Bearer ${apiKey}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
+                        model: apiModel,
                         messages: conversationHistory,
                         temperature: 0.7 
                     })
@@ -176,14 +232,13 @@ const aiChatTool = {
                 }
 
             } catch (error) {
-                addMessageToUI('error', "İnternet xətası.");
+                addMessageToUI('error', error.message || "İnternet xətası.");
             } finally {
                 setLoading(false);
-                statusLabel.innerText = "Onlayn";
-                statusLabel.className = "text-xs text-slate-500 dark:text-slate-400 font-medium";
             }
         }
 
+        // --- UI HELPERS ---
         function addMessageToUI(type, text) {
             const time = getCurrentTime();
             const div = document.createElement('div');
@@ -237,8 +292,6 @@ const aiChatTool = {
 
         function setLoading(state) {
             sendBtn.disabled = state;
-            // Inputu deaktiv etmirik ki, istifadəçi yenisini yaza bilsin, amma enter işləməyəcək
-            // chatInput.disabled = state; 
         }
 
         function escapeHtml(text) {
@@ -254,20 +307,15 @@ const aiChatTool = {
             return formatted;
         }
 
-        // Auto-resize textarea
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
 
-        // Send on Enter (Shift+Enter for new line)
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                // Əgər düymə deaktivdirsə (loading gedirsə) göndərmə
-                if (!sendBtn.disabled) {
-                    sendMessage();
-                }
+                if (!sendBtn.disabled) sendMessage();
             }
         });
 
