@@ -356,8 +356,8 @@ const aiChatTool = {
         //  API AÇARLARI (Bura yazın)
         // ==========================================
         const KEYS = {
-            groq: "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", 
-            deepseek: "sk-90a13fba7a89489aa1b1e58dd2f88e42"
+            groq: "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", 
+            deepseek: "sk-43634066da7245a98c7d7359453a8988"
         };
 
         // ==========================================
@@ -920,3 +920,4 @@ if (window.TOOLS_DATA) {
 } else {
     window.TOOLS_DATA = [aiChatTool];
 }
+
