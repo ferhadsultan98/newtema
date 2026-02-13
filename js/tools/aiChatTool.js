@@ -309,7 +309,7 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
     `
 };
 
-burda cox uzundur dedim axi silme silme silme silme silme sil,me sadece yumsalt ve ilismesin
+
 
         let conversationHistory = [systemPrompt];
 
@@ -508,4 +508,5 @@ burda cox uzundur dedim axi silme silme silme silme silme sil,me sadece yumsalt 
 };
 
 if (window.TOOLS_DATA) { window.TOOLS_DATA.push(aiChatTool); } else { window.TOOLS_DATA = [aiChatTool]; }
+
 
