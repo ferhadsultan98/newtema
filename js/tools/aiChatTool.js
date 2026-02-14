@@ -366,7 +366,7 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
             // --- API KONFİQURASİYASI ---
             if (selectedProvider === 'gemini') {
                 // Google Gemini (Fərqli strukturu var)
-               apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
+               apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
                 headers = { "Content-Type": "application/json" };
                 requestBody = {
                     contents: conversationHistory.map(msg => ({
@@ -541,5 +541,6 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
 };
 
 if (window.TOOLS_DATA) { window.TOOLS_DATA.push(aiChatTool); } else { window.TOOLS_DATA = [aiChatTool]; }
+
 
 
