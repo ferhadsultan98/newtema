@@ -156,7 +156,7 @@ const aiChatTool = {
         // 🔴 VACİB: BURA ÖZ REAL API AÇARLARINI YAZ 🔴
         // ==================================================
         const KEYS = {
-            groq: "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",     // Məsələn: gsk_yJ5... (Llama üçün)
+            groq: "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",     // Məsələn: gsk_yJ5... (Llama üçün)
             deepseek: "sk-43634066da7245a98c7d7359453a8988"   // Məsələn: sk-3d4... (DeepSeek üçün)
         };
 
@@ -508,5 +508,6 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
 };
 
 if (window.TOOLS_DATA) { window.TOOLS_DATA.push(aiChatTool); } else { window.TOOLS_DATA = [aiChatTool]; }
+
 
 
