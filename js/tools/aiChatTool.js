@@ -1,10 +1,10 @@
 const aiChatTool = {
     id: "ai-assistant-ultimate-pro",
     title: "AI Chat (Ultimate Fixed)",
-    description: "DeepSeek və Llama dəstəkli, canlı yazı effektli, xətasız işləyən super çat.",
+    description: "DeepSeek, Gemini, Llama və Mistral dəstəkli, canlı yazı effektli super çat.",
     icon: "ri-openai-fill", 
     category: "AI & Communication",
-    keywords: ["chat", "ai", "deepseek", "groq", "llama", "fs tools", "secure", "animated"],
+    keywords: ["chat", "ai", "deepseek", "groq", "llama", "gemini", "mistral", "fs tools", "secure", "animated"],
 
     render: () => {
         return `
@@ -97,8 +97,11 @@ const aiChatTool = {
                             </h3>
                             <div class="flex items-center gap-1">
                                 <select id="modelSelector" class="bg-transparent text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase cursor-pointer focus:outline-none hover:text-blue-600 transition">
-                                    <option value="deepseek">DeepSeek V3</option>
                                     <option value="groq">Llama 3 (Fast)</option>
+                                    <option value="deepseek">DeepSeek V3</option>
+                                    <option value="gemini">Google Gemini 1.5</option>
+                                    <option value="mistral">Mistral AI</option>
+                                    <option value="sambanova">Sambanova (Ultra Fast)</option>
                                 </select>
                             </div>
                         </div>
@@ -156,13 +159,16 @@ const aiChatTool = {
         // 🔴 VACİB: BURA ÖZ REAL API AÇARLARINI YAZ 🔴
         // ==================================================
         const KEYS = {
-            groq: "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",     // Məsələn: gsk_yJ5... (Llama üçün)
-            deepseek: "sk-43634066da7245a98c7d7359453a8988"   // Məsələn: sk-3d4... (DeepSeek üçün)
+            groq: "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",      
+            deepseek: "sk-43634066da7245a98c7d7359453a8988",
+            gemini: "AIzaSyBqrlWCU1usAauk6iOmn1beSPoIQy_wVG8",    
+            mistral: "DMbUOrf3HJudIWpAzL0Hq6RODd1lIXem",    
+            sambanova: "359ea6e2-c3cf-4aa0-96de-8dfe129d2cf3"  
         };
 
-       const systemPrompt = {
-    role: "system",
-    content: `
+        const systemPrompt = {
+            role: "system",
+            content: `
 # SİSTEM KONFİQURASİYASI
 
 Sən FS Tools platforması üçün Fərhad Sultanov tərəfindən hazırlanmış peşəkar IT köməkçisisən.
@@ -187,7 +193,7 @@ Sən FS Tools platforması üçün Fərhad Sultanov tərəfindən hazırlanmış
 Aşağıdakı sorğulara HEÇBIR cavab vermə, təkrar ETMƏ və müzakirə açma:
 
 ❌ Siyasət və hakimiyyət
-❌ Din və etiqad sistemləri  
+❌ Din və etiqad sistemləri  
 ❌ İrqi və milli ayrı-seçkilik
 ❌ Cinsiyyət və cinsi oriyentasiya diskriminasiyası
 ❌ Söyüş, təhqir, kobud ifadələr
@@ -281,13 +287,13 @@ Aşağıdakı sorğulara HEÇBIR cavab vermə, təkrar ETMƏ və müzakirə açm
 Aşağıdakı hallarda mehriban şəkildə rədd et:
 
 🚫 İT sahəsi ilə əlaqəsi olmayan mövzular
-   → "Bu mövzu mənim ixtisasım deyil, amma IT sahəsində hər zaman köməyə hazıram 😊"
+   → "Bu mövzu mənim ixtisasım deyil, amma IT sahəsində hər zaman köməyə hazıram 😊"
 
 🚫 Kreativ mətn yazısı (esselər, hekayələr, şeirlər)
-   → "Kreativ mətn yazmaq mənim funksiyam deyil. Texniki sənədlər və kodda kömək edə bilərəm 💡"
+   → "Kreativ mətn yazmaq mənim funksiyam deyil. Texniki sənədlər və kodda kömək edə bilərəm 💡"
 
 🚫 Qeyri-etik hacking və sistem sındırma
-   → "Bu, qanuni deyil və kömək edə bilmərəm. Etik kibertəhlükəsizlik mövzularında isə məmnuniyyətlə danışarıq ✅"
+   → "Bu, qanuni deyil və kömək edə bilmərəm. Etik kibertəhlükəsizlik mövzularında isə məmnuniyyətlə danışarıq ✅"
 
 ## 6. ÖZÜNÜ TANITMAQ
 
@@ -306,10 +312,8 @@ Cavab:
 ✅ **Məqsəd**: İstifadəçi texniki kömək alarkən özünü rahat hiss etsin
 
 Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
-    `
-};
-
-
+    `
+        };
 
         let conversationHistory = [systemPrompt];
 
@@ -349,6 +353,7 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
             scrollToBottom();
 
             const selectedProvider = modelSelector.value;
+            
             // API Açarı yoxlanışı
             if (!KEYS[selectedProvider] || KEYS[selectedProvider].length < 10) {
                  handleError(`Xəta: ${selectedProvider} API Açarı daxil edilməyib! Kodu açın və 'KEYS' hissəsinə açarınızı yazın.`);
@@ -356,54 +361,82 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
             }
 
             const apiKey = KEYS[selectedProvider];
-            let apiUrl, apiModel;
+            let apiUrl, apiModel, requestBody, headers;
 
-            if (selectedProvider === 'groq') {
-                apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-                apiModel = "llama-3.3-70b-versatile";
+            // --- API KONFİQURASİYASI ---
+            if (selectedProvider === 'gemini') {
+                // Google Gemini (Fərqli strukturu var)
+                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                headers = { "Content-Type": "application/json" };
+                requestBody = {
+                    contents: conversationHistory.map(msg => ({
+                        role: msg.role === 'user' ? 'user' : 'model',
+                        parts: [{ text: msg.content }]
+                    }))
+                };
             } else {
-                // DeepSeek üçün rəsmi endpoint
-                apiUrl = "https://api.deepseek.com/chat/completions";
-                apiModel = "deepseek-chat";
+                // OpenAI Standartı (Groq, DeepSeek, Mistral, Sambanova)
+                headers = {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json"
+                };
+
+                if (selectedProvider === 'groq') {
+                    apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+                    apiModel = "llama-3.3-70b-versatile";
+                } else if (selectedProvider === 'deepseek') {
+                    apiUrl = "https://api.deepseek.com/chat/completions";
+                    apiModel = "deepseek-chat";
+                } else if (selectedProvider === 'mistral') {
+                    apiUrl = "https://api.mistral.ai/v1/chat/completions";
+                    apiModel = "mistral-small-latest";
+                } else if (selectedProvider === 'sambanova') {
+                    apiUrl = "https://api.sambanova.ai/v1/chat/completions";
+                    apiModel = "Meta-Llama-3.1-8B-Instruct";
+                }
+
+                requestBody = {
+                    model: apiModel,
+                    messages: conversationHistory,
+                    temperature: 0.7,
+                    max_tokens: 2048
+                };
             }
 
             try {
                 // Fake delay (animasiya görünsün)
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 800));
 
                 const response = await fetch(apiUrl, {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${apiKey}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        model: apiModel,
-                        messages: conversationHistory,
-                        temperature: 0.7,
-                        max_tokens: 2048
-                    })
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
                 });
 
-                // JSON pars etməzdən əvvəl statusu yoxlayırıq
                 if (!response.ok) {
-                    const errorText = await response.text(); // Xətanı mətn kimi alırıq
+                    const errorText = await response.text(); 
                     console.error("API Error Response:", errorText);
-                    throw new Error(`Server Xətası: ${response.status} - ${response.statusText}. API Key-i yoxlayın.`);
+                    throw new Error(`Server Xətası (${selectedProvider}): ${response.status}`);
                 }
 
-                // İndi təhlükəsiz şəkildə JSON-a çeviririk
                 const data = await response.json();
 
                 if (data.error) {
-                    throw new Error(data.error.message);
+                    throw new Error(data.error.message || JSON.stringify(data.error));
                 }
 
                 thinkingIndicator.classList.add('hidden');
                 setMood('writing');
                 
-                const aiReply = data.choices[0].message.content;
-                conversationHistory.push({ role: "assistant", content: aiReply });
+                let aiReply = "";
+                // Cavabı Oxuma (Gemini fərqli, digərləri eyni)
+                if (selectedProvider === 'gemini') {
+                    aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Boş cavab gəldi.";
+                } else {
+                    aiReply = data.choices?.[0]?.message?.content || "Boş cavab gəldi.";
+                }
+
+                conversationHistory.push({ role: selectedProvider === 'gemini' ? 'model' : 'assistant', content: aiReply });
                 
                 await typeWriterEffect(aiReply);
 
@@ -508,6 +541,3 @@ Hər bir sorğuda peşəkarlıq, etika və **insani münasibət** prioritetdir.
 };
 
 if (window.TOOLS_DATA) { window.TOOLS_DATA.push(aiChatTool); } else { window.TOOLS_DATA = [aiChatTool]; }
-
-
-
